@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
 from .api.v1.orgs import router as orgs_router
-
+from .api.v1.inventory import router as inventory_router
 app = FastAPI(title="Inventory Tracker API")
 
 app.add_middleware(
@@ -16,6 +16,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(orgs_router, prefix="/api/v1")
+app.include_router(inventory_router, prefix="/api/v1")
 
 @app.get("/")
 def root():
