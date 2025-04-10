@@ -1,0 +1,94 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 📜 RULES – Real-Time Inventory Tracker (Monorepo SaaS)
+
+## 🔁 Monorepo Structure
+
+- **Root** contains `.env`, `.git`, shared configs
+- Two top-level apps:
+  - `frontend/`: Next.js 14 App Router (UI layer)
+  - `backend/`: FastAPI (API layer with WebSocket & Redis)
+
+---
+
+## 🧠 Philosophy
+
+- **Frontend = UI only.** No business logic. No direct DB access.
+- **Backend = API + Real-Time logic.** All user/org/inventory logic lives here.
+- **Supabase = Auth + Data Layer**. Used for auth, DB, and triggers.
+
+---
+
+## 📦 Folder Conventions
+
+### `frontend/`
+- ✅ `utils/supabase/ -> contains client.ts, server.ts and middleware.ts from which instances can be imported
+- ✅ `utils/api.ts` → Fetch functions to FastAPI backend
+- ❌ `actions.ts` is **not used** for external APIs or Supabase
+- ✅ Use React Query for data fetching, forms, cache
+- ✅ Store global auth/org state in context if needed
+- data fetching in frontend should be used through custom fetching hooks created using React-Query
+- React Query inside logic should call backend FastAPI directly
+
+### `backend/app/`
+- `api/v1/` → Route files (e.g. `orgs.py`, `users.py`)
+- `schemas/` → Pydantic request/response models
+- `crud/` → Supabase access logic (pure DB reads/writes)
+- `services/` → Complex flows or multi-step logic
+- `core/` → App config, DB connection, middleware
+
+---
+
+## 🔐 Auth Rules
+
+- Supabase handles user auth via client SDK
+- JWT is passed to FastAPI via `Authorization: Bearer <token>`
+- Backend parses user via `get_current_user()` dependency
+
+---
+
+## 🏢 Org Rules
+
+- Users must belong to an org to access the dashboard
+- On signup:
+  - A row is auto-created in `user_profiles` via a Supabase DB trigger
+- If `org_id` is null:
+  - Frontend must prompt user to **create** or **join** an org
+
+---
+
+## ✅ FastAPI Route Naming
+
+| Operation         | Endpoint            | Method |
+|------------------|---------------------|--------|
+| Create Org       | `/api/v1/orgs`      | POST   |
+| Join Org         | `/api/v1/users/me`  | PATCH  |
+| Get Current Org  | `/api/v1/orgs/me`   | GET    |
+
+---
+
+## 🧪 Testing & Deployment
+
+- Use `.env.local` symlinked into `frontend/` and `backend/`
+- Dev: run backend with `uvicorn`, frontend with `npm run dev`
+- Add RLS policies in Supabase to protect `user_profiles`
+
+---
+
+## ❗Rules for AI Tools (Claude, GPT, etc.)
+
+- Do NOT put Supabase logic or external API calls in `actions.ts`
+- Do NOT auto-generate entire apps — generate in modular chunks
+- Use consistent naming: `org_id`, `user_profiles`, `inventory_items`
+- Avoid embedding raw Supabase queries in the frontend
+
+---
+
+## 🧭 Future Features (For Reference)
+
+- WebSocket live updates via Redis pub/sub
+- QR code check-in/check-out
+- Role-based permissions
