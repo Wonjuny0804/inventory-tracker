@@ -1,28 +1,33 @@
-import LoginForm from "@/components/auth/LoginForm";
-import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import RegisterForm from "@/components/auth/RegisterForm";
 
-export default async function LoginPage({
+export default async function SignUpPage({
   searchParams,
 }: {
   searchParams: { error?: string; message?: string };
 }) {
+  const { error, message } = await searchParams;
   const supabase = await createClient();
-  // get user from supabase
-  const { data: user } = await supabase.auth.getUser();
-  if (user) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session) {
     redirect("/dashboard");
   }
-  const { error, message } = await searchParams;
+
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       {/* Form Section - Takes full width on mobile, half width on desktop */}
       <div className="flex w-full items-center justify-center px-4 py-10 md:w-1/2 md:px-10">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Create an account
+            </h1>
             <p className="mt-2 text-muted-foreground">
-              Enter your credentials to access your account
+              Fill in your details to get started
             </p>
 
             {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
@@ -31,15 +36,15 @@ export default async function LoginPage({
             )}
           </div>
 
-          <LoginForm />
+          <RegisterForm />
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <a
-              href="/auth/register"
+              href="/login"
               className="font-medium text-primary hover:text-primary/90"
             >
-              Create an account
+              Sign in
             </a>
           </div>
         </div>
